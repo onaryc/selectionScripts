@@ -5,6 +5,8 @@
 
 import sys
 import os
+import re
+from shutil import copy
 # from colorama import init
 # init()
 # from colorama import Fore, Back, Style
@@ -12,6 +14,7 @@ import os
 
 #sys.path.append(".")
 from MVCFramework.Model.model import *
+from MVCFramework.Tools.tools import *
 
 global api
 
@@ -22,7 +25,7 @@ class CController(CObject):
     def __init__(self, pData = {}):
         CObject.__init__(self, pData)
 
-class DebugController(CController):
+class CDebugController(CController):
     _instanceAttributes = CController._instanceAttributes + [
         {'name': 'debugLevel', 'defaultValue': 0}
         ]
@@ -38,7 +41,7 @@ class DebugController(CController):
             print('Debug : ' + pString)
         # print(Fore.RED + pString)
         
-class LogController(CController):
+class CLogController(CController):
     _instanceAttributes = CController._instanceAttributes + [
         {'name': 'logFile', 'defaultValue': ''}
         ]
@@ -142,10 +145,57 @@ class CDataController(CController):
     def APIdeserialize(self, pFile, pClass ):
         pass
         
-    def APIconstructDir(self, pTarget):
+    def APIoutputData(self, pTarget, pFiles, pExcludedStrings, pForceCopy=False):
         for instance in self.instances:
+            ## create the tag directories
             tags = instance.tags
-            print('tags ' + tags)
+            completePath = os.path.join(pTarget, tags)
+            if os.path.exists(completePath) == False:
+                os.makedirs(completePath)
+                # print('tags ' + tags)
+
+            ## try to find a correspond value in the file list
+            findAMatch = False
+            ## construct the rgular search value
+            searchValue = arrangeRE(instance.name)
+
+            excludedStrings = []
+            for excludedString in pExcludedStrings:
+                excludedStrings.append(arrangeRE(excludedString, False))
+                            
+            for filename in pFiles:
+                try:
+                    ## get the name
+                    path, name = os.path.split(filename)
+                    tmp = name.split(' (')
+                    res = re.match(searchValue, tmp[0], flags=re.I)
+                    # if filename.startswith("Dune") == True:
+                        # print('test ' + filename + ' ' + str(res))
+                        # print('searchValue ' + searchValue)
+                    # print('test ' + searchValue + ' on ' + filename)
+                    if res:
+                        testExcluded = True
+                        for excludedString in excludedStrings:
+                            res2 = re.match(excludedString, filename, flags=re.I)
+                            if res2:
+                                # self.api.log('Exclude ' + searchValue2 + ' on ' + filename)
+                                testExcluded = False
+
+                        if testExcluded == True:
+                            findAMatch = True
+                            completePath2 = os.path.join(completePath, name)
+                            if (os.path.exists(completePath2) == False) or (pForceCopy == True):                                
+                                try:
+                                    copy(filename, completePath)
+                                except PermissionError:
+                                    self.api.log('Error : can not copy ' + filename + ' to ' + completePath)
+                            
+                except re.error:
+                    self.api.log('Error : match between ' + searchValue + ' and ' + filename)
+                    
+            if findAMatch == False:
+                self.api.log('No match for ' + instance.name + ' ('+ searchValue + ') (' + tags + ')')
+         
             
         
 class CAPIController(CController):
@@ -159,8 +209,8 @@ class CAPIController(CController):
     def initialization(self, pData = {}):
         ## create the controllers
         pData['api'] = self
-        self.controllers.append(DebugController(pData))
-        self.controllers.append(LogController(pData))
+        self.controllers.append(CDebugController(pData))
+        self.controllers.append(CLogController(pData))
         self.controllers.append(CDataController(pData))
 
         ## dynamically add the APIs from the controllers

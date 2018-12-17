@@ -4,14 +4,15 @@
 # Purpose: manage game selection
 
 import sys
-# import os
+import os
 import argparse
 import inspect
 
 # import custom module
-sys.path.append(".")
-from Model.model import *
-from Controller.controller import *
+sys.path.append(os.getcwd())
+from MVCFramework.Model.model import *
+from MVCFramework.Controller.controller import *
+from MVCFramework.Tools.tools import *
         
 def makeSelectionFile( pSelectionFile, pSources, pHardware, pFileTypes ):
     ## select the class
@@ -30,7 +31,7 @@ def makeSelectionFile( pSelectionFile, pSources, pHardware, pFileTypes ):
                 
 def main():
     ## parse argument
-    #parser = argparse.ArgumentParser(description='Manage games selection')
+    parser = argparse.ArgumentParser(description='Manage games selection')
     ##parser.add_argument('-q', '--quick', action='store_true', help='')
 
     #parser.add_argument('sources', help='')
@@ -39,7 +40,7 @@ def main():
     #parser.add_argument('filename', help='')
 
     # Check passed arguments
-    #args = parser.parse_args()
+    args = parser.parse_args()
 
     ## launch the controllers
     logFile = "log.txt"

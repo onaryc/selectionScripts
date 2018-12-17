@@ -10,7 +10,6 @@ import glob
 
 # import custom module
 import os
-print("test " + os.getcwd())
 
 sys.path.append(os.getcwd())
 from MVCFramework.Model.model import *
@@ -26,23 +25,28 @@ def dumpSelection ( pSelectionFile, pSource, pTarget, pHardware, pFileType ):
         return
 
     ## gather the data
+    print('* gather data from ' + pSelectionFile)
     api.gatherDataFromFile(pSelectionFile, gameClass)
 
     ## get all the files from the source directory
-    #files = getFiles(pSource, pFileType)
+    print('* list all ' + pFileType + ' files from ' + pSource)
+    files = getFiles(pSource, pFileType)
     
-    #api.constructDir(pTarget)
+    ## construct the output directories and try to fill the directories with files
+    print('* construct the directories in ' + pTarget + ' and fill them with files') 
+    api.outputData(pTarget, files, ['(De)', '(It)', '(Sp)'])
+    
 
 def main():
     ## parse argument
     parser = argparse.ArgumentParser(description='Manage games selection')
     ##parser.add_argument('-q', '--quick', action='store_true', help='Splits file in-place without creating a copy. Only requires 4GiB free space to run')
 
-    parser.add_argument('target', help='')
-    parser.add_argument('sources', help='')
-    parser.add_argument('hardware', help='game hardware plateform')
-    parser.add_argument('fileType', help='')
-    parser.add_argument('selectionFile', help='')
+    # parser.add_argument('target',  help='')
+    # parser.add_argument('sources', help='')
+    # parser.add_argument('hardware', help='game hardware plateform')
+    # parser.add_argument('fileType', help='')
+    # parser.add_argument('selectionFile', help='')
 
     # Check passed arguments
     args = parser.parse_args()
@@ -60,8 +64,8 @@ def main():
     #hardware = args.hardware
     #fileType = args.fileType
     selectionFile = 'selection.txt'
-    source = 'J:\\Amiga\\adf'
-    target = 'J:\\Amiga\\test'
+    source = 'G:\\Amiga\\adf'
+    target = 'G:\\Amiga\\test'
     hardware = 'amiga'
     fileType = '.adf'
 

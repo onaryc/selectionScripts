@@ -21,6 +21,29 @@ def getFiles(pDirectory, pExtensions ):
                 name, extension = os.path.splitext(filename)
                 if extension in pExtensions:
                     #print('completePath ' + completePath)
-                    files += completePath
+                    files.append(completePath)
 
     return files
+
+def arrangeRE(pString, pStartEnd=True):
+    res = pString
+
+    ## specific char
+    res = res.replace('+', '\+')
+    res = res.replace('.', '\.')
+    # res = res.replace('\'', '\\\'')
+    # res = res.replace('-', '')
+    # res = res.replace(',', '')
+    # res = res.replace('  ', ' ')
+
+    ## specific char 2
+    res = res.replace('(', '\(')
+    res = res.replace(')', '\)')
+
+    ## finish the regular expression
+    res = res.replace(' ', '.*')
+    # res = '.*' + res + '.*'
+    if pStartEnd == True:
+        res = '^' + res + '$'
+    
+    return res

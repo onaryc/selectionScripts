@@ -69,6 +69,8 @@ class CGame(CObject):
         {'name': 'tags', 'defaultValue': '', 'index' : 2},
         {'name': 'filename', 'defaultValue': '', 'index' : 3},
         {'name': 'extension', 'defaultValue': '', 'index' : 4},
+        {'name': 'favorite', 'defaultValue': 'false', 'index' : 5},
+        {'name': 'languages', 'defaultValue': '', 'index' : 6},
         ]
     def __init__(self, pData = {}):
         CObject.__init__(self, pData)
@@ -138,7 +140,7 @@ class CGame(CObject):
                 
 class CAmigaGame(CGame):
     _instanceAttributes = CGame._instanceAttributes + [
-        {'name': 'disk', 'defaultValue': '', 'index' : 5},
+        {'name': 'disk', 'defaultValue': '', 'index' : 6},
         ]
     
     def __init__(self, pData = {}):
@@ -157,3 +159,11 @@ class CAmigaGame(CGame):
                     if v.startswith("Disk") == True:
                         tmp2 = v.split(' ')
                         self.disk = tmp2[1][0:-1]
+                    # if v.startswith("Fr") == True:
+                        # self.languages = 'Fr'
+                    # if v.startswith("De") == True:
+                        # self.languages = 'De'
+                    # if v.startswith("It") == True:
+                        # self.languages = 'It'
+                    # if v.startswith("Sp") == True:
+                        # self.languages = 'Sp'
