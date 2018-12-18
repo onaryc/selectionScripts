@@ -5,7 +5,7 @@
 
 import sys
 import os
-import re
+# import re
 from shutil import copy
 # from colorama import init
 # init()
@@ -59,15 +59,31 @@ class CLogController(CController):
         except FileNotFoundError:
             self.api.dprint("no instance attributes", 2)
             
-    def APIlog(self, pString):
+    def APIlog(self, pString, pPrint=False):
         try:
             fd = open(self.logFile,'a')
 
             fd.write(pString + '\n')
             
             fd.close()
+
+            if pPrint == True:
+                print(pString)
         except FileNotFoundError:
-            self.api.dprint('file ' + self.logFile + ' does not exist')
+            self.api.dprint('file ' + self.logFile + ' does not exist', 2)
+
+    def APIlog2(self, pFile, pString, pPrint=False):
+        try:
+            fd = open(pFile,'a')
+
+            fd.write(pString + '\n')
+            
+            fd.close()
+
+            if pPrint == True:
+                print(pString)
+        except FileNotFoundError:
+            self.api.dprint('file ' + pFile + ' does not exist', 2)
 
 class CDataController(CController):
     _instanceAttributes = CController._instanceAttributes + [
@@ -145,7 +161,7 @@ class CDataController(CController):
     def APIdeserialize(self, pFile, pClass ):
         pass
         
-    def APIoutputData(self, pTarget, pFiles, pExcludedStrings, pForceCopy=False):
+    def APIoutputData(self, pTarget, pFiles, pExcludedStrings, pMissingFile='missing.txt', pForceCopy=False):
         for instance in self.instances:
             ## create the tag directories
             tags = instance.tags
@@ -154,47 +170,77 @@ class CDataController(CController):
                 os.makedirs(completePath)
                 # print('tags ' + tags)
 
+            ## output info
+            tmp = 'Searching for ' + instance.name
+            self.api.log('Searching for ' + instance.name + '(' + tags + ')', True)
+            
             ## try to find a correspond value in the file list
-            findAMatch = False
-            ## construct the rgular search value
+            ## construct the regular search value
             searchValue = arrangeRE(instance.name)
 
+            ## add optional excluded strings
             excludedStrings = []
             for excludedString in pExcludedStrings:
                 excludedStrings.append(arrangeRE(excludedString, False))
-                            
-            for filename in pFiles:
-                try:
-                    ## get the name
-                    path, name = os.path.split(filename)
-                    tmp = name.split(' (')
-                    res = re.match(searchValue, tmp[0], flags=re.I)
-                    # if filename.startswith("Dune") == True:
-                        # print('test ' + filename + ' ' + str(res))
-                        # print('searchValue ' + searchValue)
-                    # print('test ' + searchValue + ' on ' + filename)
-                    if res:
-                        testExcluded = True
-                        for excludedString in excludedStrings:
-                            res2 = re.match(excludedString, filename, flags=re.I)
-                            if res2:
-                                # self.api.log('Exclude ' + searchValue2 + ' on ' + filename)
-                                testExcluded = False
 
-                        if testExcluded == True:
-                            findAMatch = True
-                            completePath2 = os.path.join(completePath, name)
-                            if (os.path.exists(completePath2) == False) or (pForceCopy == True):                                
-                                try:
-                                    copy(filename, completePath)
-                                except PermissionError:
-                                    self.api.log('Error : can not copy ' + filename + ' to ' + completePath)
+            
+            foundFiles = findInFiles(searchValue, pFiles, excludedStrings)
+            if not foundFiles:
+                ## try to widen the search
+                searchValue = arrangeRE(instance.name, False)
+                foundFiles = findInFiles(searchValue, pFiles, excludedStrings)
+
+            # print('foundFiles ' + str(foundFiles))
+
+            if foundFiles:
+                self.api.log('\tfound ' + str(foundFiles), True)
+                for filename in foundFiles:
+                    # print('found ' + str(foundFiles))
+                    path, name = os.path.split(filename)
+                    completePath2 = os.path.join(completePath, name)
+                    if (os.path.exists(completePath2) == False) or (pForceCopy == True):                                
+                        try:
+                            print('\tcopy ' + filename + ' to ' + completePath2)
+                            copy(filename, completePath)
+                        except PermissionError:
+                            self.api.log('Error : can not copy ' + filename + ' to ' + completePath)
+                    else:
+                        self.api.log('\t' + completePath2 + ' already exists')
+            else:
+                self.api.log('\tNot found')
+                self.api.log2(pMissingFile, 'Missing ' + instance.name + '(' + tags + ')')
+            # for filename in pFiles:
+                # try:
+                    # ## get the name
+                    # path, name = os.path.split(filename)
+                    # tmp = name.split(' (')
+                    # res = re.match(searchValue, tmp[0], flags=re.I)
+                    # # if filename.startswith("Dune") == True:
+                        # # print('test ' + filename + ' ' + str(res))
+                        # # print('searchValue ' + searchValue)
+                    # # print('test ' + searchValue + ' on ' + filename)
+                    # if res:
+                        # testExcluded = True
+                        # for excludedString in excludedStrings:
+                            # res2 = re.match(excludedString, filename, flags=re.I)
+                            # if res2:
+                                # # self.api.log('Exclude ' + searchValue2 + ' on ' + filename)
+                                # testExcluded = False
+
+                        # if testExcluded == True:
+                            # findAMatch = True
+                            # completePath2 = os.path.join(completePath, name)
+                            # if (os.path.exists(completePath2) == False) or (pForceCopy == True):                                
+                                # try:
+                                    # copy(filename, completePath)
+                                # except PermissionError:
+                                    # self.api.log('Error : can not copy ' + filename + ' to ' + completePath)
                             
-                except re.error:
-                    self.api.log('Error : match between ' + searchValue + ' and ' + filename)
+                # except re.error:
+                    # self.api.log('Error : match between ' + searchValue + ' and ' + filename)
                     
-            if findAMatch == False:
-                self.api.log('No match for ' + instance.name + ' ('+ searchValue + ') (' + tags + ')')
+            # if findAMatch == False:
+                # self.api.log('No match for ' + instance.name + ' ('+ searchValue + ') (' + tags + ')')
          
             
         

@@ -34,7 +34,7 @@ def dumpSelection ( pSelectionFile, pSource, pTarget, pHardware, pFileType ):
     
     ## construct the output directories and try to fill the directories with files
     print('* construct the directories in ' + pTarget + ' and fill them with files') 
-    api.outputData(pTarget, files, ['(De)', '(It)', '(Sp)'])
+    api.outputData(pTarget, files, ['(De)', '(It)', '(Sp)', '(demo-playable)'])
     
 
 def main():
@@ -65,7 +65,7 @@ def main():
     #fileType = args.fileType
     selectionFile = 'selection.txt'
     source = 'G:\\Amiga\\adf'
-    target = 'G:\\Amiga\\test'
+    target = 'G:\\Amiga\\test2'
     hardware = 'amiga'
     fileType = '.adf'
 

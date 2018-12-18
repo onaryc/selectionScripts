@@ -53,7 +53,7 @@ def main():
     #hardware = args.hardware
     #fileType = args.fileType
     #filename = args.filename
-    sources = ['G:\\Amiga\\ECS-OCS']
+    sources = ['G:\\Amiga\\AGA']
     hardware = 'amiga'
     fileType =['.ipf']
     filename = 'selection.txt'
